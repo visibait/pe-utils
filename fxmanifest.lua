@@ -4,7 +4,7 @@ game 'gta5'
 
 lua54 'yes'
 
-description 'Some utilites you can use for your server'
+description 'FiveM utils by Project Entity'
 
 version '0.0.2'
 
