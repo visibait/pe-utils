@@ -4,22 +4,17 @@ game 'gta5'
 
 lua54 'yes'
 
-description 'Personal menu by Project Entity'
+description 'Some utilites you can use for your server'
 
-version '1.0.1'
+version '0.0.2'
 
 client_scripts {
-    '@es_extended/locale.lua',
-    'locales/es.lua',
-    'locales/en.lua',
+    'client/discord_cl.lua',
+    'client/menu_cl.lua',
+    'client/ped_cl.lua',
     'config.lua',
-    'client/client.lua'
 }
 
 server_scripts {
-    '@es_extended/locale.lua',
-    'locales/es.lua',
-    'locales/en.lua',
-    'config.lua',
-    'server/server.lua'
+    'server/callbacks_sv.lua',
 }
