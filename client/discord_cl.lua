@@ -1,6 +1,4 @@
 ESX = nil
-local jobGrade = ''
-local job = ''
 
 Citizen.CreateThread(function()
 	while ESX == nil do
@@ -9,7 +7,7 @@ Citizen.CreateThread(function()
 	end
 
 	while ESX.GetPlayerData().job == nil do
-		Citizen.Wait(15)
+		Citizen.Wait(10)
 	end
 
 	ESX.PlayerData = ESX.GetPlayerData()
@@ -25,90 +23,70 @@ AddEventHandler('esx:setJob', function(job)
 	ESX.PlayerData.job = job
 end)
 
-local discordid = 777055108013752320
-local time		= 250
+local time		= 350
+local bigtext	= 'ID: ' .. GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId())) .. ' | '.. #GetActivePlayers() .. '/' .. tostring(32)
 
 Citizen.CreateThread(function()
 	while true do
-		if ESX.PlayerData.job then
-			SetDiscordRichPresenceAssetSmall(ESX.PlayerData.job.name)
-			job = ESX.PlayerData.job.label
-			jobGrade = ESX.PlayerData.job.grade_label
-			SetDiscordRichPresenceAssetSmallText(job .. " - " .. jobGrade)	
-		else
-			Citizen.Wait(time)
-		end
-
-		--MOD CODE BY sadboilogan
-		local x,y,z = table.unpack(GetEntityCoords(PlayerPedId(),true))
-		local StreetHash = GetStreetNameAtCoord(x, y, z)
-		Citizen.Wait(time)
-		if StreetHash ~= nil then
-			StreetName = GetStreetNameFromHashKey(StreetHash)
-			if IsPedOnFoot(PlayerPedId()) and not IsEntityInWater(PlayerPedId()) then
-				if IsPedSprinting(PlayerPedId()) then
-					SetDiscordRichPresenceAssetText("Trotando en "..StreetName)
-				elseif IsPedRunning(PlayerPedId()) then
-					SetDiscordRichPresenceAssetText("Corriendo en "..StreetName)
-				elseif IsPedWalking(PlayerPedId()) then
-					SetDiscordRichPresenceAssetText("Caminando en "..StreetName)
-				elseif IsPedStill(PlayerPedId()) then
-					SetDiscordRichPresenceAssetText("Parado en "..StreetName)
-				end
-			elseif GetVehiclePedIsUsing(PlayerPedId()) ~= nil and not IsPedInAnyHeli(PlayerPedId()) and not IsPedInAnyPlane(PlayerPedId()) and not IsPedOnFoot(PlayerPedId()) and not IsPedInAnySub(PlayerPedId()) and not IsPedInAnyBoat(PlayerPedId()) then
-				local VehSpeed = GetEntitySpeed(GetVehiclePedIsUsing(PlayerPedId()))
-				local CurSpeed = UseKMH and math.ceil(VehSpeed * 3.6) or math.ceil(VehSpeed * 2.236936)
-				local VehName = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(PlayerPedId()))))
-				if CurSpeed > 50 then
-					SetDiscordRichPresenceAssetText("Acelerando en "..StreetName.." en un "..VehName)
-				elseif CurSpeed <= 50 and CurSpeed > 0 then
-					SetDiscordRichPresenceAssetText("Manejando en "..StreetName.." en un "..VehName)
-				elseif CurSpeed == 0 then
-					SetDiscordRichPresenceAssetText("Estacionado en "..StreetName.." en un "..VehName)
-				end
-			elseif IsPedInAnyHeli(PlayerPedId()) or IsPedInAnyPlane(PlayerPedId()) then
-				local VehName = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(PlayerPedId()))))
-				if IsEntityInAir(GetVehiclePedIsUsing(PlayerPedId())) or GetEntityHeightAboveGround(GetVehiclePedIsUsing(PlayerPedId())) > 5.0 then
-					SetDiscordRichPresenceAssetText("Volando sobre "..StreetName.." en un "..VehName)
-				else
-					SetDiscordRichPresenceAssetText("Estacionado en "..StreetName.." en un "..VehName)
-				end
-			elseif IsEntityInWater(PlayerPedId()) then
-				SetDiscordRichPresenceAssetText("Nadando")
-			elseif IsPedInAnyBoat(PlayerPedId()) and IsEntityInWater(GetVehiclePedIsUsing(PlayerPedId())) then
-				local VehName = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(PlayerPedId()))))
-				SetDiscordRichPresenceAssetText("Navegando en un "..VehName)
-			elseif IsPedInAnySub(PlayerPedId()) and IsEntityInWater(GetVehiclePedIsUsing(PlayerPedId())) then
-				SetDiscordRichPresenceAssetText("En un sumergible")
+		if ESX ~= nil then
+			if ESX.PlayerData.job then
+				SetDiscordRichPresenceAssetSmall(ESX.PlayerData.job.name)
+				SetDiscordRichPresenceAssetSmallText(ESX.PlayerData.job.label .. " - " .. ESX.PlayerData.job.grade_label)	
+			else
+				Citizen.Wait(time)
 			end
 		end
-
-		SetRichPresence('ID:' .. GetPlayerServerId(NetworkGetEntityOwner(GetPlayerPed(-1))) .. ' | ' .. GetPlayerName(PlayerId()) .. ' | ' .. #GetActivePlayers() .. '/' .. tostring(32))
-		SetDiscordAppId(discordid)
-		SetDiscordRichPresenceAsset('pe-logo')
-
-		Citizen.Wait(8*1000)
+		location()
+		SetDiscordAppId(Config.Discord)
+		SetDiscordRichPresenceAsset(Config.bigimage)
+		SetDiscordRichPresenceAssetText(bigtext)
+		Citizen.Wait(30*1000)
 	end
 end)
 
----------Weapon Drop---------
-function NoWeapons()
-	local handle, ped = FindFirstPed()
-	local finished = false
-
-	repeat
-		if not IsEntityDead(ped) then
-			SetPedDropsWeaponsWhenDead(ped, false)
+function location()
+	local ped			= PlayerPedId()		
+	local x,y,z			= table.unpack(GetEntityCoords(ped,true))
+	local StreetHash 	= GetStreetNameAtCoord(x, y, z)
+	Citizen.Wait(time)
+	if StreetHash ~= nil then
+		ESX.TriggerServerCallback('pe-utils:info', function(receivedData)
+		local firstname = receivedData.firstname
+		local carname = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(ped))))
+		StreetName = GetStreetNameFromHashKey(StreetHash)
+		if IsPedOnFoot(ped) and not IsEntityInWater(ped) then
+			if IsPedSprinting(ped) then
+				SetRichPresence(firstname .. " esta parado en " .. StreetName)
+			elseif IsPedRunning(ped) then
+				SetRichPresence(firstname .. " esta corriendo en " .. StreetName)
+			elseif IsPedWalking(ped) then
+				SetRichPresence(firstname .. " esta caminando en " .. StreetName)
+			elseif IsPedStill(ped) then
+				SetRichPresence(firstname .. " esta parado en ".. StreetName)
+			end
+		elseif GetVehiclePedIsUsing(ped) ~= nil and not IsPedInAnyHeli(ped) and not IsPedInAnyPlane(ped) and not IsPedOnFoot(ped) and not IsPedInAnySub(ped) and not IsPedInAnyBoat(ped) then
+			local VehSpeed = GetEntitySpeed(GetVehiclePedIsUsing(ped))
+			local CurSpeed = UseKMH and math.ceil(VehSpeed * 3.6) or math.ceil(VehSpeed * 2.236936)
+			if CurSpeed > 50 then
+				SetRichPresence(firstname .." esta acelerando en " .. StreetName .. " en un " .. carname)
+			elseif CurSpeed <= 50 and CurSpeed > 0 then
+				SetRichPresence(firstname .. " esta manejando en " .. StreetName .. " en un " .. carname)
+			elseif CurSpeed == 0 then
+				SetRichPresence(firstname .. " esta estacionado en " .. StreetName .. " en un " .. carname)
+			end
+		elseif IsPedInAnyHeli(ped) or IsPedInAnyPlane(ped) then
+			if IsEntityInAir(GetVehiclePedIsUsing(ped)) or GetEntityHeightAboveGround(GetVehiclePedIsUsing(ped)) > 5.0 then
+				SetRichPresence(firstname .. " esta volando sobre " ..StreetName .." en un " .. carname)
+			else
+				SetRichPresence(firstname .. " esta estacionado en " .. StreetName .. " en un " .. carname)
+			end
+		elseif IsEntityInWater(ped) then
+			SetRichPresence(firstname .. " esta nadando")
+		elseif IsPedInAnyBoat(ped) and IsEntityInWater(GetVehiclePedIsUsing(ped)) then
+			SetRichPresence(firstname .. " esta navegando en un " .. carname)
+		elseif IsPedInAnySub(ped) and IsEntityInWater(GetVehiclePedIsUsing(ped)) then
+			SetRichPresence(firstname .. " esta en un sumergible")
 		end
-		finished, ped = FindNextPed(handle)
-	until not finished
-
-	EndFindPed(handle)
-end
-
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1000)
-		NoWeapons()
+		end)
 	end
-end)
+end
