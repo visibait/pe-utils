@@ -1,5 +1,5 @@
 local id = GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId()))
-local name = GetPlayerName(NetworkGetEntityOwner(PlayerPedId()))
+local name = GetPlayerName(PlayerPedId())
 local players = #GetActivePlayers() .. '/' .. tostring(32)
 local servername = '~b~ Project Entity ~w~| ~o~ID: '
 
