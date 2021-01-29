@@ -4,10 +4,22 @@ game 'gta5'
 
 lua54 'yes'
 
-description 'FiveM utils by Project Entity'
+description 'Personal menu by Project Entity'
 
-version '0.0.2'
+version '1.0.1'
 
 client_scripts {
-    'client/discord_cl.lua',
+    '@es_extended/locale.lua',
+    'locales/es.lua',
+    'locales/en.lua',
+    'config.lua',
+    'client/client.lua'
+}
+
+server_scripts {
+    '@es_extended/locale.lua',
+    'locales/es.lua',
+    'locales/en.lua',
+    'config.lua',
+    'server/server.lua'
 }
