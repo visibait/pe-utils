@@ -23,11 +23,33 @@ AddEventHandler('esx:setJob', function(job)
 	ESX.PlayerData.job = job
 end)
 
+local prevframes, prevtime, curtime, curframes, fps = 0, 0, 0, 0, 0
+
 local time		= 350
-local bigtext	= 'ID: ' .. GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId())) .. ' | '.. #GetActivePlayers() .. '/' .. tostring(32)
+local bigtext	= 'ID: ' .. GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId()))
+--local text 		= 'ID: ' .. GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId())) .. ' | '.. GetFrameCount() .. ' FPS'
 
 Citizen.CreateThread(function()
+
+	while not NetworkIsPlayerActive(PlayerId()) or not NetworkIsSessionStarted() do
+        Citizen.Wait(0)
+        prevframes = GetFrameCount()
+        prevtime = GetGameTimer()
+    end
+
 	while true do
+		curtime = GetGameTimer()
+        curframes = GetFrameCount()
+		if (curtime - prevtime) > 1000 then
+            fps = (curframes - prevframes) - 1              
+            prevtime = curtime
+            prevframes = curframes
+        end
+
+		if fps > 0 and fps < 1000 then
+			SetRichPresence('ID: ' ..  GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId())) .. ' | ' .. 'FPS: ' .. fps)
+		end
+
 		if ESX ~= nil then
 			if ESX.PlayerData.job then
 				SetDiscordRichPresenceAssetSmall(ESX.PlayerData.job.name)
@@ -36,57 +58,10 @@ Citizen.CreateThread(function()
 				Citizen.Wait(time)
 			end
 		end
-		location()
 		SetDiscordAppId(Config.Discord)
 		SetDiscordRichPresenceAsset(Config.bigimage)
 		SetDiscordRichPresenceAssetText(bigtext)
-		Citizen.Wait(30*1000)
+		SetDiscordRichPresenceAction(0, 'Click?', 'https://www.youtube.com/watch?v=R0lqowYD_Tg')
+		Citizen.Wait(1*1000)
 	end
 end)
-
-function location()
-	local ped			= PlayerPedId()		
-	local x,y,z			= table.unpack(GetEntityCoords(ped,true))
-	local StreetHash 	= GetStreetNameAtCoord(x, y, z)
-	Citizen.Wait(time)
-	if StreetHash ~= nil then
-		ESX.TriggerServerCallback('pe-utils:info', function(receivedData)
-		local firstname = receivedData.firstname
-		local carname = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(GetVehiclePedIsUsing(ped))))
-		StreetName = GetStreetNameFromHashKey(StreetHash)
-		if IsPedOnFoot(ped) and not IsEntityInWater(ped) then
-			if IsPedSprinting(ped) then
-				SetRichPresence(firstname .. " esta parado en " .. StreetName)
-			elseif IsPedRunning(ped) then
-				SetRichPresence(firstname .. " esta corriendo en " .. StreetName)
-			elseif IsPedWalking(ped) then
-				SetRichPresence(firstname .. " esta caminando en " .. StreetName)
-			elseif IsPedStill(ped) then
-				SetRichPresence(firstname .. " esta parado en ".. StreetName)
-			end
-		elseif GetVehiclePedIsUsing(ped) ~= nil and not IsPedInAnyHeli(ped) and not IsPedInAnyPlane(ped) and not IsPedOnFoot(ped) and not IsPedInAnySub(ped) and not IsPedInAnyBoat(ped) then
-			local VehSpeed = GetEntitySpeed(GetVehiclePedIsUsing(ped))
-			local CurSpeed = UseKMH and math.ceil(VehSpeed * 3.6) or math.ceil(VehSpeed * 2.236936)
-			if CurSpeed > 50 then
-				SetRichPresence(firstname .." esta acelerando en " .. StreetName .. " en un " .. carname)
-			elseif CurSpeed <= 50 and CurSpeed > 0 then
-				SetRichPresence(firstname .. " esta manejando en " .. StreetName .. " en un " .. carname)
-			elseif CurSpeed == 0 then
-				SetRichPresence(firstname .. " esta estacionado en " .. StreetName .. " en un " .. carname)
-			end
-		elseif IsPedInAnyHeli(ped) or IsPedInAnyPlane(ped) then
-			if IsEntityInAir(GetVehiclePedIsUsing(ped)) or GetEntityHeightAboveGround(GetVehiclePedIsUsing(ped)) > 5.0 then
-				SetRichPresence(firstname .. " esta volando sobre " ..StreetName .." en un " .. carname)
-			else
-				SetRichPresence(firstname .. " esta estacionado en " .. StreetName .. " en un " .. carname)
-			end
-		elseif IsEntityInWater(ped) then
-			SetRichPresence(firstname .. " esta nadando")
-		elseif IsPedInAnyBoat(ped) and IsEntityInWater(GetVehiclePedIsUsing(ped)) then
-			SetRichPresence(firstname .. " esta navegando en un " .. carname)
-		elseif IsPedInAnySub(ped) and IsEntityInWater(GetVehiclePedIsUsing(ped)) then
-			SetRichPresence(firstname .. " esta en un sumergible")
-		end
-		end)
-	end
-end
