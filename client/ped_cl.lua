@@ -1,23 +1,21 @@
-Citizen.CreateThread(function()
+local isArmed = false
+
+CreateThread(function()
 	while Config.DropWeapons do
-		Citizen.Wait(1000)
+		Wait(1000)
 		NoWeapons()
 	end
 end)
 
-local isarmed = false
-
-Citizen.CreateThread(function()
+CreateThread(function()
     while Config.Actions do
-        Citizen.Wait(5)
+        Wait(5)
         local ped = PlayerPedId()
-
         if not IsControlPressed(0, 330) or not IsControlPressed(0, 331) then
             DisablePlayerFiring(ped, true)
             DisableControlAction(0, 142, true)
         end
-
-        if isarmed then
+        if isArmed then
             DisableControlAction(1, 140, true)
             DisableControlAction(1, 141, true)
             DisableControlAction(1, 142, true)
@@ -25,22 +23,21 @@ Citizen.CreateThread(function()
     end
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while Config.Actions do
-        Citizen.Wait(250) -- You can lower this number if the function doesn't work correctly.
-	local _ped = PlayerPedId()
-			
-	isarmed = false
-			
-	if IsPedArmed(_ped, 6) then
-	   isarmed = true
+        Wait(200) -- You can lower this number if the function doesn't work correctly.
+	local ped = PlayerPedId()
+	if IsPedArmed(ped, 6) then
+		isArmed = true
+	else
+		isArmed = false
 	end
    end
 end)
 			
 
 -- No weapons drop on player's death
-NoWeapons = function()
+function NoWeapons()
 	local handle, ped = FindFirstPed()
 	local finished = false
 
