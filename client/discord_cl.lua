@@ -1,13 +1,15 @@
+local Wait = Wait
+
 ESX = nil
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	while ESX == nil do
 		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		Citizen.Wait(0)
+		Wait(0)
 	end
 
 	while ESX.GetPlayerData().job == nil do
-		Citizen.Wait(10)
+		Wait(10)
 	end
 
 	ESX.PlayerData = ESX.GetPlayerData()
@@ -24,15 +26,14 @@ AddEventHandler('esx:setJob', function(job)
 end)
 
 local prevframes, prevtime, curtime, curframes, fps = 0, 0, 0, 0, 0
-
 local time		= 350
 local bigtext	= 'ID: ' .. GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId()))
 --local text 		= 'ID: ' .. GetPlayerServerId(NetworkGetEntityOwner(PlayerPedId())) .. ' | '.. GetFrameCount() .. ' FPS'
 
-Citizen.CreateThread(function()
+CreateThread(function()
 
 	while not NetworkIsPlayerActive(PlayerId()) or not NetworkIsSessionStarted() do
-        Citizen.Wait(0)
+        Wait(0)
         prevframes = GetFrameCount()
         prevtime = GetGameTimer()
     end
@@ -55,13 +56,13 @@ Citizen.CreateThread(function()
 				SetDiscordRichPresenceAssetSmall(ESX.PlayerData.job.name)
 				SetDiscordRichPresenceAssetSmallText(ESX.PlayerData.job.label .. " - " .. ESX.PlayerData.job.grade_label)	
 			else
-				Citizen.Wait(time)
+				Wait(time)
 			end
 		end
 		SetDiscordAppId(Config.Discord)
 		SetDiscordRichPresenceAsset(Config.bigimage)
 		SetDiscordRichPresenceAssetText(bigtext)
 		SetDiscordRichPresenceAction(0, 'Click?', 'https://www.youtube.com/watch?v=R0lqowYD_Tg')
-		Citizen.Wait(1*1000)
+		Citizen.Wait(3*1000)
 	end
 end)
